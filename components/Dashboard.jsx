@@ -19,11 +19,13 @@ export default function Dashboard({ trades: initialTrades }) {
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
   const [chamberFilter, setChamberFilter] = useState("all");
+  const [partyFilter, setPartyFilter] = useState("all");
+  const [showUnknownTicker, setShowUnknownTicker] = useState(false);
 
-  // FMP's free plan only exposes the latest 25 trades per chamber (no
-  // pagination into history), so "load more" isn't possible here — instead
-  // this re-fetches that same latest-25 window and merges it into what we
-  // already have, surfacing any trades disclosed since the last load.
+  // Re-fetches the full trades dataset bypassing the cache (see
+  // getLatestTrades({ fresh: true }) in lib/trades.js) and merges in any
+  // trades not already in allTrades, surfacing new disclosures since the
+  // last load without discarding client-side state like search/filters.
   async function handleRefresh() {
     setLoading(true);
     setRefreshError(null);
@@ -44,9 +46,12 @@ export default function Dashboard({ trades: initialTrades }) {
         const merged = new Map(allTrades.map((trade) => [trade.id, trade]));
         for (const trade of data.trades) merged.set(trade.id, trade);
 
+        // Matches the disclosure-date sort in lib/trades.js's getLatestTrades()
+        // — re-sorting by transactionDate here would silently flip the order
+        // back on every refresh.
         setAllTrades(
           Array.from(merged.values()).sort(
-            (a, b) => new Date(b.transactionDate) - new Date(a.transactionDate)
+            (a, b) => new Date(b.disclosureDate) - new Date(a.disclosureDate)
           )
         );
       }
@@ -65,12 +70,16 @@ export default function Dashboard({ trades: initialTrades }) {
 
   // useMemo re-runs this filtering logic only when the trade list or the
   // filter values change, instead of on every render (e.g. unrelated re-renders).
-  const filteredTrades = useMemo(() => {
+  // Deliberately excludes the unknown-ticker toggle so hiddenUnknownTickerCount
+  // below can report how many trades the toggle is hiding relative to the
+  // user's other active filters, not a static whole-dataset count.
+  const visibleBeforeTickerFilter = useMemo(() => {
     const query = search.trim().toLowerCase();
 
     return allTrades.filter((trade) => {
       if (typeFilter !== "all" && trade.type !== typeFilter) return false;
       if (chamberFilter !== "all" && trade.chamber !== chamberFilter) return false;
+      if (partyFilter !== "all" && trade.party !== partyFilter) return false;
 
       if (query) {
         const matchesMember = trade.memberName.toLowerCase().includes(query);
@@ -80,7 +89,21 @@ export default function Dashboard({ trades: initialTrades }) {
 
       return true;
     });
-  }, [allTrades, search, typeFilter, chamberFilter]);
+  }, [allTrades, search, typeFilter, chamberFilter, partyFilter]);
+
+  const hiddenUnknownTickerCount = useMemo(
+    () => visibleBeforeTickerFilter.filter((trade) => !trade.ticker).length,
+    [visibleBeforeTickerFilter]
+  );
+
+  // Trades with no disclosed ticker (cash/bond/option positions the dataset
+  // couldn't resolve to a symbol) are hidden by default — a raw "$1,001 -
+  // $15,000, ticker unknown" row isn't actionable for most visitors, and
+  // they're one checkbox away for anyone who wants them.
+  const filteredTrades = useMemo(() => {
+    if (showUnknownTicker) return visibleBeforeTickerFilter;
+    return visibleBeforeTickerFilter.filter((trade) => Boolean(trade.ticker));
+  }, [visibleBeforeTickerFilter, showUnknownTicker]);
 
   return (
     <>
@@ -93,7 +116,17 @@ export default function Dashboard({ trades: initialTrades }) {
         onTypeFilterChange={setTypeFilter}
         chamberFilter={chamberFilter}
         onChamberFilterChange={setChamberFilter}
+        partyFilter={partyFilter}
+        onPartyFilterChange={setPartyFilter}
+        showUnknownTicker={showUnknownTicker}
+        onShowUnknownTickerChange={setShowUnknownTicker}
       />
+      {!showUnknownTicker && hiddenUnknownTickerCount > 0 && (
+        <p className="-mt-3 mb-4 text-xs text-neutral-400 dark:text-neutral-500">
+          {hiddenUnknownTickerCount} trade{hiddenUnknownTickerCount === 1 ? "" : "s"} with
+          unidentified tickers hidden.
+        </p>
+      )}
       <TradeTable trades={filteredTrades} />
       <RefreshButton
         onClick={handleRefresh}

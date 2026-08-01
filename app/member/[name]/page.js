@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { getLatestTrades } from "@/lib/trades";
-import { getMemberProfile, getMemberStats, getInferredPortfolio } from "@/lib/members";
+import { getMemberProfile, getMemberStats, getInferredPortfolio, getPositiveTickers } from "@/lib/members";
 import { getCurrentPrices } from "@/lib/yahooFinance";
 import MemberHeader from "@/components/MemberHeader";
 import MemberStatCards from "@/components/MemberStatCards";
@@ -43,8 +43,12 @@ export default async function MemberPage({ params }) {
   const profile = getMemberProfile(memberTrades);
   const stats = getMemberStats(memberTrades);
 
-  const tickersHeld = [...new Set(memberTrades.map((trade) => trade.ticker).filter(Boolean))];
-  const priceMap = await getCurrentPrices(tickersHeld);
+  // Only fetch prices for tickers with a positive net position — a member
+  // who's fully sold out of a stock doesn't need (and getInferredPortfolio
+  // wouldn't show) a price for it, so there's no reason to spend a Yahoo
+  // Finance call on it.
+  const positiveTickers = getPositiveTickers(memberTrades);
+  const priceMap = await getCurrentPrices(positiveTickers);
   const portfolio = getInferredPortfolio(memberTrades, priceMap);
 
   return (

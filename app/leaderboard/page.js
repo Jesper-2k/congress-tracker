@@ -13,16 +13,6 @@ import SetupNotice from "@/components/SetupNotice";
 // than being forced into per-request dynamic rendering.
 export const revalidate = 86400;
 
-function formatLastUpdated(date) {
-  return (
-    date.toLocaleString("en-US", {
-      dateStyle: "medium",
-      timeStyle: "short",
-      timeZone: "UTC",
-    }) + " UTC"
-  );
-}
-
 export default async function LeaderboardPage() {
   // Matches this route's own revalidate window (see comment on
   // getLatestTrades in lib/trades.js for why these need to agree).
@@ -59,7 +49,7 @@ export default async function LeaderboardPage() {
             Ranked by return vs S&amp;P 500 on disclosed trades
           </p>
           <p className="mt-1 text-xs text-neutral-400 dark:text-neutral-500">
-            Last updated: {formatLastUpdated(now)}
+            Data refreshes daily
           </p>
         </header>
 

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import TypeBadge from "@/components/TypeBadge";
+import PartyBadge from "@/components/PartyBadge";
 
 export default function TradeTable({ trades }) {
   if (trades.length === 0) {
@@ -27,16 +28,19 @@ export default function TradeTable({ trades }) {
           {trades.map((trade) => (
             <tr key={trade.id} className="bg-white dark:bg-neutral-950">
               <td className="px-4 py-3 text-neutral-900 dark:text-neutral-100">
-                {trade.filerId ? (
-                  <Link
-                    href={`/member/${trade.filerId}`}
-                    className="hover:underline hover:text-neutral-950 dark:hover:text-white"
-                  >
-                    {trade.memberName}
-                  </Link>
-                ) : (
-                  trade.memberName
-                )}
+                <div className="flex items-center gap-2">
+                  {trade.filerId ? (
+                    <Link
+                      href={`/member/${trade.filerId}`}
+                      className="hover:underline hover:text-neutral-950 dark:hover:text-white"
+                    >
+                      {trade.memberName}
+                    </Link>
+                  ) : (
+                    trade.memberName
+                  )}
+                  <PartyBadge party={trade.party} />
+                </div>
               </td>
               <td className="px-4 py-3 text-neutral-500 dark:text-neutral-400">
                 {trade.chamber}

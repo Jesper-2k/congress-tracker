@@ -7,6 +7,10 @@ export default function Filters({
   onTypeFilterChange,
   chamberFilter,
   onChamberFilterChange,
+  partyFilter,
+  onPartyFilterChange,
+  showUnknownTicker,
+  onShowUnknownTickerChange,
 }) {
   return (
     <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -37,6 +41,24 @@ export default function Filters({
             { value: "Senate", label: "Senate" },
           ]}
         />
+        <ToggleGroup
+          value={partyFilter}
+          onChange={onPartyFilterChange}
+          options={[
+            { value: "all", label: "All" },
+            { value: "D", label: "Democrat" },
+            { value: "R", label: "Republican" },
+          ]}
+        />
+        <label className="flex items-center gap-1.5 text-sm text-neutral-600 dark:text-neutral-300">
+          <input
+            type="checkbox"
+            checked={showUnknownTicker}
+            onChange={(e) => onShowUnknownTickerChange(e.target.checked)}
+            className="h-4 w-4 rounded border-neutral-300 text-neutral-900 focus:ring-neutral-400 dark:border-neutral-700 dark:bg-neutral-900"
+          />
+          Show trades with unknown ticker
+        </label>
       </div>
     </div>
   );
