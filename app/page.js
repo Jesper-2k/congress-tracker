@@ -1,65 +1,41 @@
-import Image from "next/image";
+import Link from "next/link";
+import { getLatestTrades } from "@/lib/trades";
+import Dashboard from "@/components/Dashboard";
+import SetupNotice from "@/components/SetupNotice";
 
-export default function Home() {
+// Re-fetch from FMP at most once an hour instead of on every page load.
+export const revalidate = 3600;
+
+// This is a Server Component (no "use client" at the top) — it runs on the
+// server, can call getTrades() directly with await, and never ships the
+// fetching code (or the API key it uses) to the browser. It just renders
+// plain HTML plus the data, which we hand off to a Client Component below
+// for the interactive parts (search, filters).
+export default async function Home() {
+  const { trades, error } = await getLatestTrades();
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.js file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
+    <main className="min-h-full flex-1 bg-neutral-50 dark:bg-neutral-950">
+      <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
+        <header className="mb-8">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <h1 className="text-2xl font-semibold text-neutral-900 dark:text-neutral-50">
+              Congressional Trade Tracker
+            </h1>
+            <Link
+              href="/leaderboard"
+              className="text-sm font-medium text-neutral-600 hover:text-neutral-900 hover:underline dark:text-neutral-300 dark:hover:text-neutral-50"
             >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+              Leaderboard →
+            </Link>
+          </div>
+          <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
+            Stock trades disclosed by U.S. House and Senate members under the STOCK Act.
           </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+        </header>
+
+        {error ? <SetupNotice error={error} /> : <Dashboard trades={trades} />}
+      </div>
+    </main>
   );
 }
