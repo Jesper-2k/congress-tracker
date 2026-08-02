@@ -4,8 +4,15 @@ import { useMemo, useState } from "react";
 import SummaryStats from "@/components/SummaryStats";
 import Filters from "@/components/Filters";
 import TradeTable from "@/components/TradeTable";
+import TopTradersTable from "@/components/TopTradersTable";
+import ToggleGroup from "@/components/ToggleGroup";
 import RefreshButton from "@/components/RefreshButton";
 import MonthlyActivityChart from "@/components/MonthlyActivityChart";
+
+const VIEW_OPTIONS = [
+  { value: "traders", label: "Top Traders" },
+  { value: "trades", label: "All Trades" },
+];
 
 // "use client" makes this a Client Component: it runs in the browser and can
 // use React state/hooks. Filtering already-loaded data doesn't need another
@@ -21,6 +28,12 @@ export default function Dashboard({ trades: initialTrades }) {
   const [chamberFilter, setChamberFilter] = useState("all");
   const [partyFilter, setPartyFilter] = useState("all");
   const [showUnknownTicker, setShowUnknownTicker] = useState(false);
+  // Defaults to the grouped-by-member view — a flat feed of every disclosed
+  // trade isn't an actionable landing view once the dataset covers dozens
+  // of members. "All Trades" is still available for ticker-focused
+  // browsing; a specific member's full trade history is one click away on
+  // their profile page (linked from every row in either view).
+  const [view, setView] = useState("traders");
 
   // Re-fetches the full trades dataset bypassing the cache (see
   // getLatestTrades({ fresh: true }) in lib/trades.js) and merges in any
@@ -127,7 +140,16 @@ export default function Dashboard({ trades: initialTrades }) {
           unidentified tickers hidden.
         </p>
       )}
-      <TradeTable trades={filteredTrades} />
+
+      <div className="mb-3">
+        <ToggleGroup value={view} onChange={setView} options={VIEW_OPTIONS} />
+      </div>
+
+      {view === "traders" ? (
+        <TopTradersTable trades={filteredTrades} />
+      ) : (
+        <TradeTable trades={filteredTrades} />
+      )}
       <RefreshButton
         onClick={handleRefresh}
         loading={loading}
