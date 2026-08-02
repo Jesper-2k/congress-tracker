@@ -1,36 +1,44 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Congress Tracker
 
-## Getting Started
+A Next.js app for tracking stock trades disclosed by U.S. House and Senate members under the [STOCK Act](https://en.wikipedia.org/wiki/STOCK_Act).
 
-First, run the development server:
+## Features
+
+- **Dashboard** (`/`) — searchable, filterable feed of disclosed trades (by type, chamber, and party), with summary stats and a monthly activity chart. A Refresh button re-fetches the latest disclosures on demand.
+- **Member profiles** (`/member/[filerId]`) — a member's trade history, stat cards (buy/sell split, most-traded ticker, best-performing trade), and an **Inferred Portfolio**: estimated current holdings and value, built from disclosed transaction ranges plus a live price lookup.
+- **Leaderboard** (`/leaderboard`) — members ranked by return vs. the S&P 500 on their disclosed trades, filterable by chamber, party, and time period.
+- **Portfolio Simulator** (on each member profile) — mirrors a member's disclosed buys with a custom starting amount, comparing two entry-timing scenarios (as if you'd bought the instant the trade happened vs. the day it was actually disclosed) against an SPY benchmark.
+
+All estimates are derived from disclosed transaction *ranges* (e.g. "$1,001–$15,000"), not exact share counts or prices — see the disclaimers on each page. Not investment advice.
+
+## Data sources
+
+- **Trade disclosures**: a static, pre-parsed dataset of STOCK Act filings from [kadoa-org/congress-trading-monitor](https://github.com/kadoa-org/congress-trading-monitor), fetched server-side (see `lib/trades.js`). No API key required.
+- **Live prices**: Yahoo Finance's unofficial `/v7/finance/quote` (current prices) and `/v8/finance/chart` (historical prices, for the simulator) endpoints (see `lib/yahooFinance.js`). These are undocumented and occasionally rate-limit or block requests entirely depending on the network they're called from; the app degrades gracefully (showing "—" or falling back to the last successfully cached price) rather than failing the page when that happens.
+
+## Architecture
+
+- `lib/` — server-only data fetching (`trades.js`, `yahooFinance.js`) and pure computation (`members.js`, `leaderboard.js`, `simulator.js`, `portfolioSimulator.js`, `monthlyActivity.js`, `currency.js`, `format.js`). The pure functions have no I/O, so they're covered by unit tests independent of any live data source.
+- `components/` — presentation. Client Components (`"use client"`) handle interactivity (filters, the simulator form); everything else is a Server Component.
+- `app/` — routes and API endpoints (`app/api/trades`, `app/api/member/[filerId]/simulate`).
+
+## Getting started
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+### Scripts
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Command         | Description                                  |
+| --------------- | --------------------------------------------- |
+| `npm run dev`   | Start the dev server                          |
+| `npm run build` | Production build                              |
+| `npm start`     | Serve the production build                    |
+| `npm run lint`  | Lint with ESLint                              |
+| `npm test`      | Run the unit test suite (Vitest, `lib/*.test.js`) |
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+No environment variables are required — both data sources above are public and unauthenticated.
