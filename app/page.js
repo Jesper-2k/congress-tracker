@@ -3,14 +3,13 @@ import { getLatestTrades } from "@/lib/trades";
 import Dashboard from "@/components/Dashboard";
 import SetupNotice from "@/components/SetupNotice";
 
-// Re-fetch from FMP at most once an hour instead of on every page load.
+// Re-fetch the trades dataset at most once an hour instead of on every page load.
 export const revalidate = 3600;
 
 // This is a Server Component (no "use client" at the top) — it runs on the
-// server, can call getTrades() directly with await, and never ships the
-// fetching code (or the API key it uses) to the browser. It just renders
-// plain HTML plus the data, which we hand off to a Client Component below
-// for the interactive parts (search, filters).
+// server and can call getLatestTrades() directly with await. It just
+// renders plain HTML plus the data, which we hand off to a Client Component
+// below for the interactive parts (search, filters).
 export default async function Home() {
   const { trades, error } = await getLatestTrades();
 
