@@ -48,6 +48,7 @@ export default function Filters({
             { value: "all", label: "All" },
             { value: "D", label: "Democrat" },
             { value: "R", label: "Republican" },
+            { value: "I", label: "Independent" },
           ]}
         />
         <label className="flex items-center gap-1.5 text-sm text-neutral-600 dark:text-neutral-300">
