@@ -1,9 +1,5 @@
 import StatTile from "@/components/StatTile";
-
-function formatPercent(value) {
-  if (value === null) return "—";
-  return `${value > 0 ? "+" : ""}${value.toFixed(1)}%`;
-}
+import { formatPercent } from "@/lib/format";
 
 export default function MemberStatCards({ stats }) {
   const buySellRatio =

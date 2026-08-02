@@ -11,22 +11,9 @@ import {
   Tooltip,
   Legend,
 } from "recharts";
+import { formatMoney, formatPercent } from "@/lib/format";
 
 const DEFAULT_AMOUNT = 10000;
-
-function formatMoney(value, currency) {
-  if (value === null || value === undefined || Number.isNaN(value)) return "—";
-  return value.toLocaleString("en-US", {
-    style: "currency",
-    currency,
-    maximumFractionDigits: 0,
-  });
-}
-
-function formatPercent(value) {
-  if (value === null || value === undefined) return "—";
-  return `${value > 0 ? "+" : ""}${value.toFixed(1)}%`;
-}
 
 function ScenarioCard({ title, description, scenario, currency }) {
   return (

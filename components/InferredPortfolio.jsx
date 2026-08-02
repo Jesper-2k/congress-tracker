@@ -1,16 +1,4 @@
-function formatMoney(value) {
-  if (value === null || Number.isNaN(value)) return "—";
-  return value.toLocaleString("en-US", {
-    style: "currency",
-    currency: "USD",
-    maximumFractionDigits: 0,
-  });
-}
-
-function formatPercent(value) {
-  if (value === null) return "—";
-  return `${value > 0 ? "+" : ""}${value.toFixed(1)}%`;
-}
+import { formatMoney, formatPercent } from "@/lib/format";
 
 export default function InferredPortfolio({ rows }) {
   return (

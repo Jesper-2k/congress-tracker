@@ -4,13 +4,9 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import PartyBadge from "@/components/PartyBadge";
 import ToggleGroup from "@/components/ToggleGroup";
+import { formatPercent } from "@/lib/format";
 
 const TOP_N = 15;
-
-function formatPercent(value) {
-  if (value === null || value === undefined) return "—";
-  return `${value > 0 ? "+" : ""}${value.toFixed(1)}%`;
-}
 
 // `candidates` is the precomputed pool from lib/leaderboard.js — already
 // eligibility-filtered, with calculateMemberReturn() run for all three
